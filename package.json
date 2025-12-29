@@ -3,6 +3,10 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "author": {
+    "name": "Ivan",
+    "email": "dudkinivan1245@gmail.com"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -23,7 +27,6 @@
     "react-dom": "^19.2.3"
   },
   "devDependencies": {
-    "@capacitor-community/electron": "^6.0.0",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
     "concurrently": "^8.2.0",
@@ -61,11 +64,11 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64", "ia32"]
+          "arch": ["x64"]
         },
         {
-          "target": "msi",
-          "arch": ["x64", "ia32"]
+          "target": "portable",
+          "arch": ["x64"]
         }
       ]
     },
