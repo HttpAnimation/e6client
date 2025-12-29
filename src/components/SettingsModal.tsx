@@ -174,6 +174,28 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {/* Blacklist Tab */}
           {activeTab === 'blacklist' && (
             <div className="space-y-6 animate-fade-in">
+                 {/* NSFW Mode Toggle */}
+                 <div className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                    <div>
+                        <span className="dark:text-gray-200 block font-medium">NSFW Mode</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">Enable adult content (Questionable/Explicit)</span>
+                    </div>
+                    <button
+                        onClick={() => setLocalSettings({ ...localSettings, nsfwEnabled: !localSettings.nsfwEnabled })}
+                        className={`relative w-12 h-6 rounded-full transition-colors duration-200 ${
+                        localSettings.nsfwEnabled ? 'bg-red-500' : 'bg-gray-400'
+                        }`}
+                    >
+                        <div
+                        className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform duration-200 ${
+                            localSettings.nsfwEnabled ? 'left-7' : 'left-1'
+                        }`}
+                        />
+                    </button>
+                </div>
+
+                 {/* Safe Mode - only show when NSFW is enabled */}
+                 {localSettings.nsfwEnabled && (
                  <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                     <div>
                         <span className="dark:text-gray-200 block font-medium">Safe Mode</span>
@@ -192,6 +214,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         />
                     </button>
                 </div>
+                 )}
 
                 <div>
                     <div className="flex justify-between items-center mb-2">

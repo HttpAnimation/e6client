@@ -99,6 +99,11 @@ const App: React.FC = () => {
           }
           finalQuery = `fav:${settings.username} ${searchQuery}`;
       }
+      
+      // Add SFW filter if NSFW mode is disabled
+      if (!settings.nsfwEnabled) {
+          finalQuery = `rating:s ${finalQuery}`.trim();
+      }
 
       const currentPage = reset ? 1 : page;
       const fetchedPosts = await ApiService.getPosts(settings, finalQuery, currentPage);

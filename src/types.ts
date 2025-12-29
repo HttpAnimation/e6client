@@ -95,7 +95,8 @@ export interface AppSettings {
   apiKey: string;
   proxyUrl: string; // Acts as Base URL (e.g., local proxy or e621.net)
   enableProxy: boolean;
-  safeMode: boolean; // Blurs Q/E content
+  nsfwEnabled: boolean; // Allow NSFW content (default false = SFW only)
+  safeMode: boolean; // Blurs Q/E content when NSFW is enabled
   darkMode: boolean;
   blacklistedTags: string[];
 }
@@ -105,6 +106,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   apiKey: '',
   proxyUrl: 'https://corsproxy.io/?',
   enableProxy: false, // Default disabled as requested
+  nsfwEnabled: false, // Default to SFW only
   safeMode: false,
   darkMode: true,
   blacklistedTags: [],
