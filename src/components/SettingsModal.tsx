@@ -315,14 +315,16 @@ function BlacklistTab({
       <div>
         <div className="flex justify-between items-center mb-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Blacklisted Tags</label>
-          <button
-            onClick={onSync}
-            disabled={syncing}
-            className="text-xs px-2 py-1 bg-e6-light text-white rounded hover:bg-e6-base disabled:opacity-50"
-          >
-            {syncing ? <i className="fas fa-spinner fa-spin" /> : <i className="fas fa-sync-alt mr-1" />}
-            Sync from Account
-          </button>
+          {settings.username && settings.apiKey && (
+            <button
+              onClick={onSync}
+              disabled={syncing}
+              className="text-xs px-2 py-1 bg-e6-light text-white rounded hover:bg-e6-base disabled:opacity-50"
+            >
+              {syncing ? <i className="fas fa-spinner fa-spin" /> : <i className="fas fa-sync-alt mr-1" />}
+              Sync from Account
+            </button>
+          )}
         </div>
         {syncMsg && (
           <p className={cn('text-xs mb-2', syncMsg.includes('failed') ? 'text-red-500' : 'text-green-500')}>
