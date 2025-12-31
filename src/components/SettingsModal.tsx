@@ -1,4 +1,4 @@
-import { useState, useCallback, KeyboardEvent } from 'react';
+import { useState, useCallback, useEffect, KeyboardEvent } from 'react';
 import type { Settings, Account } from '../types';
 import { getActiveAccount, createAccount } from '../types';
 import { api } from '../services/api';
@@ -25,8 +25,54 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('account');
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState<string | null>(null);
+  const [hasSynced, setHasSynced] = useState(false);
+
+  // Reset state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setLocal(settings);
+      setHasSynced(false);
+      setSyncMsg(null);
+    }
+  }, [isOpen, settings]);
+
+  // Auto-sync blacklist when modal opens and account is logged in
+  useEffect(() => {
+    if (!isOpen || hasSynced) return;
+    
+    const activeAccount = getActiveAccount(local);
+    if (activeAccount?.username && activeAccount?.apiKey) {
+      setHasSynced(true);
+      autoSyncBlacklist();
+    }
+  }, [isOpen, local.accounts, local.activeAccountId, hasSynced]);
 
   if (!isOpen) return null;
+
+  const autoSyncBlacklist = async () => {
+    const activeAccount = getActiveAccount(local);
+    if (!activeAccount?.username) return;
+    
+    setSyncing(true);
+    setSyncMsg(null);
+
+    try {
+      const user = await api.getUserByName(local, activeAccount.username);
+      if (user?.blacklisted_tags) {
+        const cloudTags = user.blacklisted_tags
+          .split(/\r?\n/)
+          .map((t) => t.trim())
+          .filter(Boolean);
+        const merged = [...new Set([...local.blacklistedTags, ...cloudTags])];
+        setLocal((prev) => ({ ...prev, blacklistedTags: merged }));
+        setSyncMsg(`Auto-synced ${cloudTags.length} tags from account.`);
+      }
+    } catch {
+      // Silent fail for auto-sync
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const handleSave = () => {
     onUpdate(local);
@@ -81,9 +127,14 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
           .split(/\r?\n/)
           .map((t) => t.trim())
           .filter(Boolean);
+        const newTags = cloudTags.filter((t) => !local.blacklistedTags.includes(t));
         const merged = [...new Set([...local.blacklistedTags, ...cloudTags])];
         setLocal((prev) => ({ ...prev, blacklistedTags: merged }));
-        setSyncMsg(`Synced! Found ${cloudTags.length} tags.`);
+        if (newTags.length > 0) {
+          setSyncMsg(`Synced! Added ${newTags.length} new tags.`);
+        } else {
+          setSyncMsg('Already up to date!');
+        }
       } else {
         setSyncMsg('User not found or empty blacklist.');
       }
@@ -530,20 +581,30 @@ function BlacklistTab({
       {/* Tag list */}
       <div>
         <div className="flex justify-between items-center mb-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Blacklisted Tags</label>
+          <div className="flex items-center gap-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Blacklisted Tags</label>
+            {syncing && (
+              <span className="text-xs text-e6-light">
+                <i className="fas fa-spinner fa-spin mr-1" />
+                Syncing...
+              </span>
+            )}
+          </div>
           {activeAccount?.username && activeAccount?.apiKey && (
             <button
               onClick={onSync}
               disabled={syncing}
-              className="text-xs px-2 py-1 bg-e6-light text-white rounded hover:bg-e6-base disabled:opacity-50"
+              className="text-xs px-2 py-1 bg-e6-light text-white rounded hover:bg-e6-base disabled:opacity-50 flex items-center gap-1"
+              title="Refresh blacklist from account"
             >
-              {syncing ? <i className="fas fa-spinner fa-spin" /> : <i className="fas fa-sync-alt mr-1" />}
-              Sync from Account
+              <i className={cn('fas fa-sync-alt', syncing && 'fa-spin')} />
+              <span className="hidden sm:inline">Refresh</span>
             </button>
           )}
         </div>
         {syncMsg && (
           <p className={cn('text-xs mb-2', syncMsg.includes('failed') ? 'text-red-500' : 'text-green-500')}>
+            <i className={cn('fas mr-1', syncMsg.includes('failed') ? 'fa-exclamation-circle' : 'fa-check-circle')} />
             {syncMsg}
           </p>
         )}
